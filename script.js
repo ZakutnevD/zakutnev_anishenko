@@ -77,77 +77,6 @@ class MahjongGame {
         this.showMessage('Поле перемешано!', 'success');
     }
     
-    // Проверяем, свободна ли фишка (крайняя)
-    isEdgeFree(row, col) {
-        if (this.board[row][col].removed) return false;
-        
-        // Проверяем слева
-        let hasLeft = false;
-        for (let i = col - 1; i >= 0; i--) {
-            if (!this.board[row][i].removed) {
-                hasLeft = true;
-                break;
-            }
-        }
-        
-        // Проверяем справа
-        let hasRight = false;
-        for (let i = col + 1; i < this.boardSize; i++) {
-            if (!this.board[row][i].removed) {
-                hasRight = true;
-                break;
-            }
-        }
-        
-        // Проверяем сверху
-        let hasTop = false;
-        for (let i = row - 1; i >= 0; i--) {
-            if (!this.board[i][col].removed) {
-                hasTop = true;
-                break;
-            }
-        }
-        
-        // Проверяем снизу
-        let hasBottom = false;
-        for (let i = row + 1; i < this.boardSize; i++) {
-            if (!this.board[i][col].removed) {
-                hasBottom = true;
-                break;
-            }
-        }
-        
-        // Фишка свободна, если нет соседей слева И справа ИЛИ нет соседей сверху И снизу
-        const freeHorizontally = !hasLeft && !hasRight;
-        const freeVertically = !hasTop && !hasBottom;
-        
-        return freeHorizontally || freeVertically;
-    }
-    
-    // Проверяем, можно ли выбрать фишку (она либо свободна, либо у неё есть пара)
-    isSelectable(row, col) {
-        if (this.board[row][col].removed) return false;
-        
-        // Если фишка свободна по краям - можно выбрать
-        if (this.isEdgeFree(row, col)) return true;
-        
-        // Если не свободна, проверяем, есть ли у неё пара, которую можно соединить
-        for (let i = 0; i < this.boardSize; i++) {
-            for (let j = 0; j < this.boardSize; j++) {
-                if (i === row && j === col) continue;
-                if (this.board[i][j].removed) continue;
-                
-                if (this.board[row][col].symbol === this.board[i][j].symbol) {
-                    if (this.canConnect(row, col, i, j)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        
-        return false;
-    }
-    
     canConnect(row1, col1, row2, col2) {
         if (row1 === row2 && col1 === col2) return false;
         if (this.board[row1][col1].symbol !== this.board[row2][col2].symbol) return false;
@@ -182,14 +111,12 @@ class MahjongGame {
     }
     
     checkOneCorner(row1, col1, row2, col2) {
-        // Проверяем угол в точке (row1, col2)
         if (this.board[row1][col2].removed && 
             this.checkDirect(row1, col1, row1, col2) && 
             this.checkDirect(row2, col2, row1, col2)) {
             return true;
         }
         
-        // Проверяем угол в точке (row2, col1)
         if (this.board[row2][col1].removed && 
             this.checkDirect(row1, col1, row2, col1) && 
             this.checkDirect(row2, col2, row2, col1)) {
@@ -200,7 +127,6 @@ class MahjongGame {
     }
     
     checkTwoCorners(row1, col1, row2, col2) {
-        // Проверяем по всем строкам
         for (let i = 0; i < this.boardSize; i++) {
             if (i !== row1 && i !== row2) {
                 if (this.board[i][col1].removed && this.board[i][col2].removed &&
@@ -212,7 +138,6 @@ class MahjongGame {
             }
         }
         
-        // Проверяем по всем столбцам
         for (let j = 0; j < this.boardSize; j++) {
             if (j !== col1 && j !== col2) {
                 if (this.board[row1][j].removed && this.board[row2][j].removed &&
@@ -320,16 +245,34 @@ class MahjongGame {
         }, 3000);
     }
     
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ
     handleTileClick(row, col) {
         if (this.board[row][col].removed) return;
         
         if (this.selectedTile === null) {
-            // Проверяем, можно ли выбрать эту фишку
-            if (this.isSelectable(row, col)) {
+            // Ищем, есть ли у этой фишки пара, которую можно соединить
+            let hasValidPair = false;
+            for (let i = 0; i < this.boardSize; i++) {
+                for (let j = 0; j < this.boardSize; j++) {
+                    if (i === row && j === col) continue;
+                    if (this.board[i][j].removed) continue;
+                    
+                    if (this.board[row][col].symbol === this.board[i][j].symbol) {
+                        if (this.canConnect(row, col, i, j)) {
+                            hasValidPair = true;
+                            break;
+                        }
+                    }
+                }
+                if (hasValidPair) break;
+            }
+            
+            // Если есть пара, которую можно соединить - разрешаем выбрать
+            if (hasValidPair) {
                 this.selectedTile = {row, col};
                 this.render();
             } else {
-                this.showMessage('Эта фишка заблокирована!', 'error');
+                this.showMessage('Эта фишка не имеет доступной пары!', 'error');
             }
         } else {
             const selected = this.selectedTile;
