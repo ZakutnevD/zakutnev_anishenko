@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Маджонг Соедини Пары</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🀄 Маджонг Соедини Пары</h1>
+        
+        <div class="controls">
+            <div class="difficulty">
+                <button data-size="4" class="difficulty-btn active">4x4</button>
+                <button data-size="6" class="difficulty-btn">6x6</button>
+                <button data-size="8" class="difficulty-btn">8x8</button>
+            </div>
+            <div class="actions">
+                <button id="shuffleBtn" class="action-btn">🔄 Перемешать</button>
+                <button id="hintBtn" class="action-btn">💡 Подсказка</button>
+                <button id="resetBtn" class="action-btn">🔄 Новая игра</button>
+            </div>
+            <div class="stats">
+                <span>Осталось: <span id="tilesLeft">0</span></span>
+                <span>Найдено пар: <span id="pairsFound">0</span></span>
+            </div>
+        </div>
+
+        <div id="board" class="board"></div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
