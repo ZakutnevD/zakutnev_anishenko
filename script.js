@@ -81,6 +81,19 @@ class MahjongGame {
         if (row1 === row2 && col1 === col2) return false;
         if (this.board[row1][col1].symbol !== this.board[row2][col2].symbol) return false;
         
+        // Проверяем, осталось ли только 2 фишки
+        let remainingCount = 0;
+        for (let i = 0; i < this.boardSize; i++) {
+            for (let j = 0; j < this.boardSize; j++) {
+                if (!this.board[i][j].removed) remainingCount++;
+            }
+        }
+        
+        // Если осталось всего 2 фишки, они всегда могут соединиться
+        if (remainingCount === 2) {
+            return true;
+        }
+        
         if (this.checkDirect(row1, col1, row2, col2)) return true;
         if (this.checkOneCorner(row1, col1, row2, col2)) return true;
         if (this.checkTwoCorners(row1, col1, row2, col2)) return true;
@@ -245,35 +258,38 @@ class MahjongGame {
         }, 3000);
     }
     
-    // ИСПРАВЛЕННАЯ ФУНКЦИЯ
     handleTileClick(row, col) {
         if (this.board[row][col].removed) return;
         
         if (this.selectedTile === null) {
-            // Ищем, есть ли у этой фишки пара, которую можно соединить
-            let hasValidPair = false;
+            // Проверяем, есть ли у этой фишки пара
+            let hasPair = false;
+            let pairRow = -1, pairCol = -1;
+            
             for (let i = 0; i < this.boardSize; i++) {
                 for (let j = 0; j < this.boardSize; j++) {
                     if (i === row && j === col) continue;
                     if (this.board[i][j].removed) continue;
                     
                     if (this.board[row][col].symbol === this.board[i][j].symbol) {
-                        if (this.canConnect(row, col, i, j)) {
-                            hasValidPair = true;
-                            break;
-                        }
+                        hasPair = true;
+                        pairRow = i;
+                        pairCol = j;
+                        break;
                     }
                 }
-                if (hasValidPair) break;
+                if (hasPair) break;
             }
             
-            // Если есть пара, которую можно соединить - разрешаем выбрать
-            if (hasValidPair) {
-                this.selectedTile = {row, col};
-                this.render();
-            } else {
-                this.showMessage('Эта фишка не имеет доступной пары!', 'error');
+            if (!hasPair) {
+                this.showMessage('Эта фишка не имеет пары!', 'error');
+                return;
             }
+            
+            // Всегда разрешаем выбрать любую фишку, у которой есть пара
+            this.selectedTile = {row, col};
+            this.render();
+            
         } else {
             const selected = this.selectedTile;
             
@@ -283,10 +299,17 @@ class MahjongGame {
                 return;
             }
             
-            if (this.canConnect(selected.row, selected.col, row, col)) {
-                this.removePair(selected.row, selected.col, row, col);
+            // Проверяем, можно ли соединить
+            if (this.board[selected.row][selected.col].symbol === this.board[row][col].symbol) {
+                if (this.canConnect(selected.row, selected.col, row, col)) {
+                    this.removePair(selected.row, selected.col, row, col);
+                } else {
+                    this.showMessage('Нельзя соединить эти фишки!', 'error');
+                    this.selectedTile = null;
+                    this.render();
+                }
             } else {
-                this.showMessage('Нельзя соединить эти фишки!', 'error');
+                this.showMessage('Это разные фишки!', 'error');
                 this.selectedTile = null;
                 this.render();
             }
