@@ -29,6 +29,8 @@
 ## 👥 Автор
 
 Студенты группы 23-ЗИЭ-1 Закутнев и Анищенко
+
+<br>
 <a href="https://zakutnevd.github.io/zakutnev_anishenko/">
   <img src="https://img.shields.io/badge/🚀-Запустить_проект-brightgreen?style=for-the-badge" alt="Запустить">
 </a>
