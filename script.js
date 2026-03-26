@@ -77,43 +77,54 @@ class MahjongGame {
         this.showMessage('Поле перемешано!', 'success');
     }
     
+    // ИСПРАВЛЕНО: правильное определение свободной фишки
+    // Фишка свободна, если она свободна слева И справа ИЛИ сверху И снизу
     isFree(row, col) {
         if (this.board[row][col].removed) return false;
         
-        let leftFree = false;
-        let rightFree = false;
-        let topFree = false;
-        let bottomFree = false;
+        // Проверяем, есть ли сосед слева
+        let hasLeft = false;
+        for (let i = col - 1; i >= 0; i--) {
+            if (!this.board[row][i].removed) {
+                hasLeft = true;
+                break;
+            }
+        }
         
+        // Проверяем, есть ли сосед справа
+        let hasRight = false;
+        for (let i = col + 1; i < this.boardSize; i++) {
+            if (!this.board[row][i].removed) {
+                hasRight = true;
+                break;
+            }
+        }
+        
+        // Проверяем, есть ли сосед сверху
+        let hasTop = false;
         for (let i = row - 1; i >= 0; i--) {
             if (!this.board[i][col].removed) {
-                leftFree = true;
+                hasTop = true;
                 break;
             }
         }
         
+        // Проверяем, есть ли сосед снизу
+        let hasBottom = false;
         for (let i = row + 1; i < this.boardSize; i++) {
             if (!this.board[i][col].removed) {
-                rightFree = true;
+                hasBottom = true;
                 break;
             }
         }
         
-        for (let j = col - 1; j >= 0; j--) {
-            if (!this.board[row][j].removed) {
-                topFree = true;
-                break;
-            }
-        }
+        // Фишка свободна, если:
+        // 1. Слева и справа нет соседей (крайняя по горизонтали) ИЛИ
+        // 2. Сверху и снизу нет соседей (крайняя по вертикали)
+        const freeHorizontally = !hasLeft && !hasRight;
+        const freeVertically = !hasTop && !hasBottom;
         
-        for (let j = col + 1; j < this.boardSize; j++) {
-            if (!this.board[row][j].removed) {
-                bottomFree = true;
-                break;
-            }
-        }
-        
-        return leftFree || rightFree || topFree || bottomFree;
+        return freeHorizontally || freeVertically;
     }
     
     canConnect(row1, col1, row2, col2) {
@@ -150,11 +161,17 @@ class MahjongGame {
     }
     
     checkOneCorner(row1, col1, row2, col2) {
-        if (this.board[row1][col2].removed && this.checkDirect(row1, col1, row1, col2) && this.checkDirect(row2, col2, row1, col2)) {
+        // Проверяем угол в точке (row1, col2)
+        if (this.board[row1][col2].removed && 
+            this.checkDirect(row1, col1, row1, col2) && 
+            this.checkDirect(row2, col2, row1, col2)) {
             return true;
         }
         
-        if (this.board[row2][col1].removed && this.checkDirect(row1, col1, row2, col1) && this.checkDirect(row2, col2, row2, col1)) {
+        // Проверяем угол в точке (row2, col1)
+        if (this.board[row2][col1].removed && 
+            this.checkDirect(row1, col1, row2, col1) && 
+            this.checkDirect(row2, col2, row2, col1)) {
             return true;
         }
         
@@ -162,6 +179,7 @@ class MahjongGame {
     }
     
     checkTwoCorners(row1, col1, row2, col2) {
+        // Проверяем по всем строкам
         for (let i = 0; i < this.boardSize; i++) {
             if (i !== row1 && i !== row2) {
                 if (this.board[i][col1].removed && this.board[i][col2].removed &&
@@ -173,6 +191,7 @@ class MahjongGame {
             }
         }
         
+        // Проверяем по всем столбцам
         for (let j = 0; j < this.boardSize; j++) {
             if (j !== col1 && j !== col2) {
                 if (this.board[row1][j].removed && this.board[row2][j].removed &&
@@ -248,12 +267,12 @@ class MahjongGame {
             const idx1 = tile1.row * this.boardSize + tile1.col;
             const idx2 = tile2.row * this.boardSize + tile2.col;
             
-            elements[idx1]?.classList.add('hint');
-            elements[idx2]?.classList.add('hint');
+            if (elements[idx1]) elements[idx1].classList.add('hint');
+            if (elements[idx2]) elements[idx2].classList.add('hint');
             
             setTimeout(() => {
-                elements[idx1]?.classList.remove('hint');
-                elements[idx2]?.classList.remove('hint');
+                if (elements[idx1]) elements[idx1].classList.remove('hint');
+                if (elements[idx2]) elements[idx2].classList.remove('hint');
             }, 2000);
         } else {
             this.showMessage('Нет доступных ходов! Нажмите "Перемешать"', 'error');
