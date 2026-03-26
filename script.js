@@ -54,22 +54,22 @@ class MahjongGame {
     
     shuffleBoard() {
         const remainingTiles = [];
+        const positions = [];
+        
         for (let i = 0; i < this.boardSize; i++) {
             for (let j = 0; j < this.boardSize; j++) {
                 if (!this.board[i][j].removed) {
                     remainingTiles.push(this.board[i][j].symbol);
+                    positions.push({row: i, col: j});
                 }
             }
         }
         
         const shuffled = this.shuffle([...remainingTiles]);
-        let idx = 0;
-        for (let i = 0; i < this.boardSize; i++) {
-            for (let j = 0; j < this.boardSize; j++) {
-                if (!this.board[i][j].removed) {
-                    this.board[i][j].symbol = shuffled[idx++];
-                }
-            }
+        
+        for (let k = 0; k < positions.length; k++) {
+            const pos = positions[k];
+            this.board[pos.row][pos.col].symbol = shuffled[k];
         }
         
         this.selectedTile = null;
@@ -77,43 +77,75 @@ class MahjongGame {
         this.showMessage('Поле перемешано!', 'success');
     }
     
-    isFree(row, col) {
+    // Проверяем, свободна ли фишка (крайняя)
+    isEdgeFree(row, col) {
         if (this.board[row][col].removed) return false;
         
-        let leftFree = false;
-        let rightFree = false;
-        let topFree = false;
-        let bottomFree = false;
+        // Проверяем слева
+        let hasLeft = false;
+        for (let i = col - 1; i >= 0; i--) {
+            if (!this.board[row][i].removed) {
+                hasLeft = true;
+                break;
+            }
+        }
         
+        // Проверяем справа
+        let hasRight = false;
+        for (let i = col + 1; i < this.boardSize; i++) {
+            if (!this.board[row][i].removed) {
+                hasRight = true;
+                break;
+            }
+        }
+        
+        // Проверяем сверху
+        let hasTop = false;
         for (let i = row - 1; i >= 0; i--) {
             if (!this.board[i][col].removed) {
-                leftFree = true;
+                hasTop = true;
                 break;
             }
         }
         
+        // Проверяем снизу
+        let hasBottom = false;
         for (let i = row + 1; i < this.boardSize; i++) {
             if (!this.board[i][col].removed) {
-                rightFree = true;
+                hasBottom = true;
                 break;
             }
         }
         
-        for (let j = col - 1; j >= 0; j--) {
-            if (!this.board[row][j].removed) {
-                topFree = true;
-                break;
+        // Фишка свободна, если нет соседей слева И справа ИЛИ нет соседей сверху И снизу
+        const freeHorizontally = !hasLeft && !hasRight;
+        const freeVertically = !hasTop && !hasBottom;
+        
+        return freeHorizontally || freeVertically;
+    }
+    
+    // Проверяем, можно ли выбрать фишку (она либо свободна, либо у неё есть пара)
+    isSelectable(row, col) {
+        if (this.board[row][col].removed) return false;
+        
+        // Если фишка свободна по краям - можно выбрать
+        if (this.isEdgeFree(row, col)) return true;
+        
+        // Если не свободна, проверяем, есть ли у неё пара, которую можно соединить
+        for (let i = 0; i < this.boardSize; i++) {
+            for (let j = 0; j < this.boardSize; j++) {
+                if (i === row && j === col) continue;
+                if (this.board[i][j].removed) continue;
+                
+                if (this.board[row][col].symbol === this.board[i][j].symbol) {
+                    if (this.canConnect(row, col, i, j)) {
+                        return true;
+                    }
+                }
             }
         }
         
-        for (let j = col + 1; j < this.boardSize; j++) {
-            if (!this.board[row][j].removed) {
-                bottomFree = true;
-                break;
-            }
-        }
-        
-        return leftFree || rightFree || topFree || bottomFree;
+        return false;
     }
     
     canConnect(row1, col1, row2, col2) {
@@ -150,11 +182,17 @@ class MahjongGame {
     }
     
     checkOneCorner(row1, col1, row2, col2) {
-        if (this.board[row1][col2].removed && this.checkDirect(row1, col1, row1, col2) && this.checkDirect(row2, col2, row1, col2)) {
+        // Проверяем угол в точке (row1, col2)
+        if (this.board[row1][col2].removed && 
+            this.checkDirect(row1, col1, row1, col2) && 
+            this.checkDirect(row2, col2, row1, col2)) {
             return true;
         }
         
-        if (this.board[row2][col1].removed && this.checkDirect(row1, col1, row2, col1) && this.checkDirect(row2, col2, row2, col1)) {
+        // Проверяем угол в точке (row2, col1)
+        if (this.board[row2][col1].removed && 
+            this.checkDirect(row1, col1, row2, col1) && 
+            this.checkDirect(row2, col2, row2, col1)) {
             return true;
         }
         
@@ -162,6 +200,7 @@ class MahjongGame {
     }
     
     checkTwoCorners(row1, col1, row2, col2) {
+        // Проверяем по всем строкам
         for (let i = 0; i < this.boardSize; i++) {
             if (i !== row1 && i !== row2) {
                 if (this.board[i][col1].removed && this.board[i][col2].removed &&
@@ -173,6 +212,7 @@ class MahjongGame {
             }
         }
         
+        // Проверяем по всем столбцам
         for (let j = 0; j < this.boardSize; j++) {
             if (j !== col1 && j !== col2) {
                 if (this.board[row1][j].removed && this.board[row2][j].removed &&
@@ -221,12 +261,10 @@ class MahjongGame {
         for (let i = 0; i < this.boardSize; i++) {
             for (let j = 0; j < this.boardSize; j++) {
                 if (this.board[i][j].removed) continue;
-                if (!this.isFree(i, j)) continue;
                 
                 for (let k = i; k < this.boardSize; k++) {
                     for (let l = (k === i ? j + 1 : 0); l < this.boardSize; l++) {
                         if (this.board[k][l].removed) continue;
-                        if (!this.isFree(k, l)) continue;
                         
                         if (this.canConnect(i, j, k, l)) {
                             pairs.push([{row: i, col: j}, {row: k, col: l}]);
@@ -242,18 +280,18 @@ class MahjongGame {
         const pairs = this.findAvailablePairs();
         if (pairs.length > 0) {
             const [tile1, tile2] = pairs[0];
-            this.showMessage(`Подсказка: соедините фишки в позициях (${tile1.row + 1}, ${tile1.col + 1}) и (${tile2.row + 1}, ${tile2.col + 1})`, 'success');
+            this.showMessage(`Подсказка: соедините фишки с символами ${this.board[tile1.row][tile1.col].symbol}`, 'success');
             
             const elements = document.querySelectorAll('.tile');
             const idx1 = tile1.row * this.boardSize + tile1.col;
             const idx2 = tile2.row * this.boardSize + tile2.col;
             
-            elements[idx1]?.classList.add('hint');
-            elements[idx2]?.classList.add('hint');
+            if (elements[idx1]) elements[idx1].classList.add('hint');
+            if (elements[idx2]) elements[idx2].classList.add('hint');
             
             setTimeout(() => {
-                elements[idx1]?.classList.remove('hint');
-                elements[idx2]?.classList.remove('hint');
+                if (elements[idx1]) elements[idx1].classList.remove('hint');
+                if (elements[idx2]) elements[idx2].classList.remove('hint');
             }, 2000);
         } else {
             this.showMessage('Нет доступных ходов! Нажмите "Перемешать"', 'error');
@@ -286,7 +324,8 @@ class MahjongGame {
         if (this.board[row][col].removed) return;
         
         if (this.selectedTile === null) {
-            if (this.isFree(row, col)) {
+            // Проверяем, можно ли выбрать эту фишку
+            if (this.isSelectable(row, col)) {
                 this.selectedTile = {row, col};
                 this.render();
             } else {
@@ -313,7 +352,8 @@ class MahjongGame {
     
     render() {
         const boardDiv = document.getElementById('board');
-        boardDiv.style.gridTemplateColumns = `repeat(${this.boardSize}, minmax(50px, 70px))`;
+        const tileSize = this.boardSize <= 6 ? 70 : 55;
+        boardDiv.style.gridTemplateColumns = `repeat(${this.boardSize}, minmax(50px, ${tileSize}px))`;
         
         boardDiv.innerHTML = '';
         for (let i = 0; i < this.boardSize; i++) {
@@ -352,19 +392,28 @@ class MahjongGame {
             });
         });
         
-        document.getElementById('shuffleBtn').addEventListener('click', () => {
-            this.shuffleBoard();
-        });
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        if (shuffleBtn) {
+            shuffleBtn.addEventListener('click', () => {
+                this.shuffleBoard();
+            });
+        }
         
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            this.createBoard();
-            this.render();
-            this.showMessage('Новая игра начата!', 'success');
-        });
+        const resetBtn = document.getElementById('resetBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                this.createBoard();
+                this.render();
+                this.showMessage('Новая игра начата!', 'success');
+            });
+        }
         
-        document.getElementById('hintBtn').addEventListener('click', () => {
-            this.getHint();
-        });
+        const hintBtn = document.getElementById('hintBtn');
+        if (hintBtn) {
+            hintBtn.addEventListener('click', () => {
+                this.getHint();
+            });
+        }
     }
 }
 
