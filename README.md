@@ -28,4 +28,8 @@
 
 ## 👥 Автор
 
-Выполнено в рамках проектного практикума КЛГТУ
+Студенты группы 23-ЗИЭ-1 Закутнев и Анищенко
+<a href="https://zakutnevd.github.io/zakutnev_anishenko/">
+  <img src="https://img.shields.io/badge/🚀-Запустить_проект-brightgreen?style=for-the-badge" alt="Запустить">
+</a>
+
