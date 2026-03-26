@@ -1,0 +1,184 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a472a 0%, #2d5a3b 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 95vw;
+    overflow-x: auto;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e2f;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.difficulty {
+    display: flex;
+    gap: 10px;
+}
+
+.difficulty-btn, .action-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.difficulty-btn {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.difficulty-btn.active {
+    background: #2d5a3b;
+    color: white;
+}
+
+.difficulty-btn:hover {
+    background: #3d7a4b;
+    color: white;
+}
+
+.action-btn {
+    background: #ff9800;
+    color: white;
+}
+
+.action-btn:hover {
+    background: #e68900;
+    transform: scale(1.02);
+}
+
+.stats {
+    display: flex;
+    gap: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e2f;
+}
+
+.stats span {
+    background: #f5f5f5;
+    padding: 5px 12px;
+    border-radius: 20px;
+}
+
+.board {
+    display: grid;
+    gap: 8px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.tile {
+    width: 60px;
+    height: 70px;
+    background: linear-gradient(145deg, #fff8e7 0%, #ffe4b5 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d4af7a;
+    position: relative;
+}
+
+.tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tile.selected {
+    background: linear-gradient(145deg, #ffe68f 0%, #ffd966 100%);
+    box-shadow: 0 0 0 3px #ff9800, 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: scale(1.02);
+}
+
+.tile.removed {
+    visibility: hidden;
+    pointer-events: none;
+    box-shadow: none;
+}
+
+.message {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.message.success {
+    background: #d4edda;
+    color: #155724;
+    animation: pulse 0.5s ease;
+}
+
+.message.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+    .tile {
+        width: 45px;
+        height: 55px;
+        font-size: 22px;
+    }
+    
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .difficulty, .actions {
+        justify-content: center;
+    }
+    
+    .stats {
+        justify-content: center;
+    }
+}
